@@ -108,5 +108,5 @@ MonoBehaviour:
   avoidObstacles: 1
   obstacleMask:
     serializedVersion: 2
-    m_Bits: 128
+    m_Bits: 4294967295
   collisionRadius: 0.3

@@ -7,6 +7,7 @@ TagManager:
   - Camera Pivot
   - StairDown
   - StairUp
+  - Cat.001
   layers:
   - Default
   - TransparentFX
