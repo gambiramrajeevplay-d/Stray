@@ -1,29 +1,9 @@
 fileFormatVersion: 2
-guid: 03a24bb77d3ddba40897a9b0e69aa3e2
+guid: 0cff8c1a20da4374a9a16bceb4fbe27c
 ModelImporter:
   serializedVersion: 21300
   internalIDToNameTable: []
-  externalObjects:
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Color
-    second: {fileID: 2100000, guid: 4cfe42ee5e6507e4e84b24bd969cce46, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Emissive
-    second: {fileID: 2100000, guid: cea9aac02f41e644dbce87f722ea34be, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Glass
-    second: {fileID: 2100000, guid: 31cb6733071b9d645bfd63cfb22cdb11, type: 2}
-  - first:
-      type: UnityEngine:Texture2D
-      assembly: UnityEngine.CoreModule
-      name: Textures
-    second: {fileID: 2800000, guid: 21defcfd6364a3945ba22df3323d515c, type: 3}
+  externalObjects: {}
   materials:
     materialImportMode: 2
     materialName: 0
