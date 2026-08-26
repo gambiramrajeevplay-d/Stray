@@ -24,6 +24,10 @@ public class GameManager : MonoBehaviour
     [Header("Cat Control")]
     public CatController catController;
 
+    // =========================================================
+    // CUTSCENE
+    // =========================================================
+
     [Header("Cutscene")]
     public GameObject cutsceneObject;
 
@@ -39,15 +43,44 @@ public class GameManager : MonoBehaviour
     [Tooltip("If enabled, the cutscene can only be played once.")]
     public bool playCutsceneOnce = true;
 
+    // =========================================================
+    // CUTSCENE END TEXT
+    // =========================================================
+
+    [Header("Cutscene End Text")]
+    [Tooltip("Text displayed after the cutscene and level appears.")]
+    [SerializeField] private TMP_Text cutsceneEndText;
+
+    [Tooltip("Message displayed after the cutscene.")]
+    [SerializeField] private string cutsceneEndMessage = "Let's go!";
+
+    [Tooltip("Time between each character.")]
+    [SerializeField] private float typewriterSpeed = 0.05f;
+
+    [Tooltip("How long the complete text remains visible after typing.")]
+    [SerializeField] private float cutsceneEndTextDuration = 3f;
+
+    // =========================================================
+    // LEVEL
+    // =========================================================
+
     [Header("Level")]
     [Tooltip("This GameObject will be enabled after the cutscene ends.")]
     public GameObject levelGameObject;
+
+    // =========================================================
+    // VARIABLES
+    // =========================================================
 
     private bool cutscenePlayed = false;
     private bool scarfCollected = false;
 
     private Coroutine scarfTextCoroutine;
     private Coroutine cutsceneCoroutine;
+
+    // FIXED:
+    // Coroutine used for the cutscene ending typewriter text.
+    private Coroutine cutsceneEndTextCoroutine;
 
     // =========================================================
     // AWAKE
@@ -160,6 +193,15 @@ public class GameManager : MonoBehaviour
         }
 
         // =====================================================
+        // CUTSCENE END TEXT
+        // =====================================================
+
+        if (cutsceneEndText != null)
+        {
+            cutsceneEndText.gameObject.SetActive(false);
+        }
+
+        // =====================================================
         // LEVEL
         // =====================================================
 
@@ -176,6 +218,10 @@ public class GameManager : MonoBehaviour
         {
             cutsceneObject.SetActive(false);
         }
+
+        // =====================================================
+        // CUTSCENE CAMERA
+        // =====================================================
 
         if (cutsceneCamera != null)
         {
@@ -287,7 +333,9 @@ public class GameManager : MonoBehaviour
             scarfText.gameObject.SetActive(true);
         }
 
-        Debug.Log("Showing scarf text.");
+        Debug.Log(
+            "Showing scarf text."
+        );
 
         // =====================================================
         // WAIT
@@ -303,7 +351,9 @@ public class GameManager : MonoBehaviour
 
         if (fadeController != null)
         {
-            Debug.Log("Fading into scarf image sequence.");
+            Debug.Log(
+                "Fading into scarf image sequence."
+            );
 
             yield return StartCoroutine(
                 fadeController.FadeOutRoutine()
@@ -325,7 +375,9 @@ public class GameManager : MonoBehaviour
 
         if (scarfImageSequence != null)
         {
-            Debug.Log("Starting scarf image sequence.");
+            Debug.Log(
+                "Starting scarf image sequence."
+            );
 
             scarfImageSequence.PlaySequence();
         }
@@ -388,9 +440,6 @@ public class GameManager : MonoBehaviour
         // KEEP LEVEL ACTIVE
         // =====================================================
 
-        // Level remains active.
-        // We are only using the fade to transition.
-
         Debug.Log(
             "Level remains active after scarf sequence."
         );
@@ -434,7 +483,6 @@ public class GameManager : MonoBehaviour
 
     private void FinishScarfSequence()
     {
-        // Level stays active.
         SetCatControl(false);
 
         if (scarfPanel != null)
@@ -484,7 +532,7 @@ public class GameManager : MonoBehaviour
             SceneManager.GetActiveScene();
 
         SceneManager.LoadScene(
-            currentScene.name
+            "Level_Selection"
         );
     }
 
@@ -564,7 +612,7 @@ public class GameManager : MonoBehaviour
         );
 
         // =====================================================
-        // WAIT
+        // WAIT FOR CUTSCENE
         // =====================================================
 
         yield return new WaitForSecondsRealtime(
@@ -632,6 +680,26 @@ public class GameManager : MonoBehaviour
         }
 
         // =====================================================
+        // TYPEWRITER TEXT
+        // =====================================================
+
+        if (cutsceneEndTextCoroutine != null)
+        {
+            StopCoroutine(
+                cutsceneEndTextCoroutine
+            );
+        }
+
+        cutsceneEndTextCoroutine =
+            StartCoroutine(
+                CutsceneEndTextRoutine()
+            );
+
+        yield return cutsceneEndTextCoroutine;
+
+        cutsceneEndTextCoroutine = null;
+
+        // =====================================================
         // ENABLE CAT CONTROL
         // =====================================================
 
@@ -642,5 +710,62 @@ public class GameManager : MonoBehaviour
         );
 
         cutsceneCoroutine = null;
+    }
+
+    // =========================================================
+    // CUTSCENE END TYPEWRITER
+    // =========================================================
+
+    private IEnumerator CutsceneEndTextRoutine()
+    {
+        if (cutsceneEndText == null)
+        {
+            Debug.LogWarning(
+                "Cutscene End Text is not assigned."
+            );
+
+            yield break;
+        }
+
+        // =====================================================
+        // ACTIVATE TEXT
+        // =====================================================
+
+        cutsceneEndText.gameObject.SetActive(true);
+
+        // =====================================================
+        // CLEAR TEXT
+        // =====================================================
+
+        cutsceneEndText.text = "";
+
+        // =====================================================
+        // TYPE EACH CHARACTER
+        // =====================================================
+
+        string message = cutsceneEndMessage;
+
+        for (int i = 0; i < message.Length; i++)
+        {
+            cutsceneEndText.text += message[i];
+
+            yield return new WaitForSecondsRealtime(
+                typewriterSpeed
+            );
+        }
+
+        // =====================================================
+        // KEEP COMPLETE TEXT ON SCREEN
+        // =====================================================
+
+        yield return new WaitForSecondsRealtime(
+            cutsceneEndTextDuration
+        );
+
+        // =====================================================
+        // HIDE TEXT
+        // =====================================================
+
+        cutsceneEndText.gameObject.SetActive(false);
     }
 }
