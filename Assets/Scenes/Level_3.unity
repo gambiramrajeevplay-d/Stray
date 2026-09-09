@@ -2508,7 +2508,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1700190209}
-  m_RootOrder: 4162
+  m_RootOrder: 4163
   m_LocalEulerAnglesHint: {x: 0, y: -91.215, z: 0}
 --- !u!23 &660249433
 MeshRenderer:
@@ -3125,6 +3125,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   scarfText: {fileID: 0}
   scarfMessage: "I remember this place\u2026 We used to come here together"
+  scarfTypewriterSpeed: 0.05
   scarfTextDuration: 3
   scarfPanel: {fileID: 322914350}
   scarfImageSequence: {fileID: 1301732790}
@@ -3141,6 +3142,7 @@ MonoBehaviour:
   typewriterSpeed: 0.05
   cutsceneEndTextDuration: 3
   levelGameObject: {fileID: 950287953}
+  inGameSoundObjectName: InGameSound
   levelInitializeFrames: 5
 --- !u!4 &787140260
 Transform:
@@ -5547,7 +5549,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1700190209}
-  m_RootOrder: 4150
+  m_RootOrder: 4162
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &1358344939
 MeshRenderer:
@@ -7567,7 +7569,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   timerDuration: 120
-  timerText: {fileID: 0}
+  timerText: {fileID: 878852383}
 --- !u!4 &1912496716
 Transform:
   m_ObjectHideFlags: 0
@@ -10853,7 +10855,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1700190209}
-  m_RootOrder: 4149
+  m_RootOrder: 4150
   m_LocalEulerAnglesHint: {x: 0, y: -90.262, z: 0}
 --- !u!4 &3523367469829690050
 Transform:
