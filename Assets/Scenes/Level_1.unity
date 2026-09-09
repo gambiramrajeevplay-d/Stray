@@ -12510,6 +12510,31 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1467659157531664055, guid: 932f47ee4bb646642b95e9cab2e20856, type: 3}
   m_PrefabInstance: {fileID: 637685754}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &637685756 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2239974114262926349, guid: 932f47ee4bb646642b95e9cab2e20856, type: 3}
+  m_PrefabInstance: {fileID: 637685754}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &637685757
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 637685756}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f45a82f057f68f1499baf597a86dfff1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 100
+  currentHealth: 0
+  healthFillImage: {fileID: 0}
+  healthText: {fileID: 0}
+  deathPanel: {fileID: 0}
+  disableControlOnDeath: 1
+  destroyOnDeath: 0
+  destroyDelay: 1
 --- !u!4 &644944582 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 757900277293392254, guid: fbddebe6b9bf18649b7ba19eaa0961dc, type: 3}
