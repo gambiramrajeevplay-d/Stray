@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -12,6 +12,7 @@ public class GameManager : MonoBehaviour
     // =========================================================
 
     [Header("Scarf")]
+    [Tooltip("Collected Text inside Level > InGame UI Canvas.")]
     public TMP_Text scarfText;
 
     [Tooltip("Message displayed when the scarf is collected.")]
@@ -56,8 +57,11 @@ public class GameManager : MonoBehaviour
     // =========================================================
 
     [Header("Timer")]
-    [Tooltip("Timer that starts after the cutscene end text finishes.")]
+    [Tooltip("Timer component that starts after the cutscene end text finishes.")]
     public Timer timer;
+
+    [Tooltip("TimerText inside Level > InGame UI Canvas.")]
+    public TMP_Text timerText;
 
     // =========================================================
     // CUTSCENE
@@ -87,17 +91,20 @@ public class GameManager : MonoBehaviour
     // =========================================================
 
     [Header("Cutscene End Text")]
-    [Tooltip("Text displayed after the cutscene and level appears.")]
-    [SerializeField] private TMP_Text cutsceneEndText;
+    [Tooltip("TypeWritter text inside Level > InGame UI Canvas.")]
+    public TMP_Text cutsceneEndText;
 
     [Tooltip("Message displayed after the cutscene.")]
-    [SerializeField] private string cutsceneEndMessage = "Let's go!";
+    public string cutsceneEndMessage = "Let's go!";
 
     [Tooltip("Time between each character.")]
-    [SerializeField] private float typewriterSpeed = 0.05f;
+    public float typewriterSpeed = 0.05f;
 
     [Tooltip("How long the complete text remains visible.")]
-    [SerializeField] private float cutsceneEndTextDuration = 3f;
+    public float cutsceneEndTextDuration = 3f;
+
+    [Tooltip("Time to wait after the typewriter finishes before disabling TypeWritter.")]
+    public float cutsceneEndDisableDelay = 1f;
 
     // =========================================================
     // LEVEL
@@ -106,6 +113,20 @@ public class GameManager : MonoBehaviour
     [Header("Level")]
     [Tooltip("The gameplay level GameObject.")]
     public GameObject levelGameObject;
+
+    // =========================================================
+    // IN-GAME UI
+    // =========================================================
+
+    [Header("In-Game UI")]
+    [Tooltip("Name of the scarf collected text inside the Level.")]
+    public string collectedTextObjectName = "Collected Text";
+
+    [Tooltip("Name of the cutscene end text inside the Level.")]
+    public string typeWritterObjectName = "TypeWritter";
+
+    [Tooltip("Name of the timer text inside the Level.")]
+    public string timerTextObjectName = "TimerText";
 
     // =========================================================
     // IN-GAME SOUND
@@ -268,7 +289,8 @@ public class GameManager : MonoBehaviour
             else
             {
                 Debug.LogWarning(
-                    "GameManager: Timer could not be found."
+                    "GameManager: Timer will be searched again " +
+                    "after the Level is enabled."
                 );
             }
         }
@@ -281,32 +303,12 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         // =====================================================
-        // SCARF TEXT
-        // =====================================================
-
-        if (scarfText != null)
-        {
-            scarfText.text = "";
-            scarfText.gameObject.SetActive(false);
-        }
-
-        // =====================================================
         // SCARF PANEL
         // =====================================================
 
         if (scarfPanel != null)
         {
             scarfPanel.SetActive(false);
-        }
-
-        // =====================================================
-        // CUTSCENE END TEXT
-        // =====================================================
-
-        if (cutsceneEndText != null)
-        {
-            cutsceneEndText.text = "";
-            cutsceneEndText.gameObject.SetActive(false);
         }
 
         // =====================================================
@@ -384,6 +386,179 @@ public class GameManager : MonoBehaviour
     }
 
     // =========================================================
+    // FIND LEVEL UI TEXTS
+    // =========================================================
+
+    private void FindLevelUITexts()
+    {
+        if (levelGameObject == null)
+        {
+            Debug.LogWarning(
+                "GameManager: Cannot find Level UI texts because " +
+                "Level GameObject is not assigned."
+            );
+
+            return;
+        }
+
+        // =====================================================
+        // COLLECTED TEXT
+        // =====================================================
+
+        if (scarfText == null)
+        {
+            Transform collectedTransform =
+                FindChildRecursive(
+                    levelGameObject.transform,
+                    collectedTextObjectName
+                );
+
+            if (collectedTransform != null)
+            {
+                scarfText =
+                    collectedTransform.GetComponent<TMP_Text>();
+
+                if (scarfText != null)
+                {
+                    Debug.Log(
+                        "GameManager: Collected Text found inside Level."
+                    );
+                }
+                else
+                {
+                    Debug.LogWarning(
+                        "GameManager: Collected Text was found, " +
+                        "but it has no TMP_Text component."
+                    );
+                }
+            }
+            else
+            {
+                Debug.LogWarning(
+                    "GameManager: Could not find '" +
+                    collectedTextObjectName +
+                    "' inside Level."
+                );
+            }
+        }
+
+        // =====================================================
+        // TYPEWRITTER
+        // =====================================================
+
+        if (cutsceneEndText == null)
+        {
+            Transform typeWritterTransform =
+                FindChildRecursive(
+                    levelGameObject.transform,
+                    typeWritterObjectName
+                );
+
+            if (typeWritterTransform != null)
+            {
+                cutsceneEndText =
+                    typeWritterTransform.GetComponent<TMP_Text>();
+
+                if (cutsceneEndText != null)
+                {
+                    Debug.Log(
+                        "GameManager: TypeWritter found inside Level."
+                    );
+                }
+                else
+                {
+                    Debug.LogWarning(
+                        "GameManager: TypeWritter was found, " +
+                        "but it has no TMP_Text component."
+                    );
+                }
+            }
+            else
+            {
+                Debug.LogWarning(
+                    "GameManager: Could not find '" +
+                    typeWritterObjectName +
+                    "' inside Level."
+                );
+            }
+        }
+
+        // =====================================================
+        // TIMER TEXT
+        // =====================================================
+
+        if (timerText == null)
+        {
+            Transform timerTextTransform =
+                FindChildRecursive(
+                    levelGameObject.transform,
+                    timerTextObjectName
+                );
+
+            if (timerTextTransform != null)
+            {
+                timerText =
+                    timerTextTransform.GetComponent<TMP_Text>();
+
+                if (timerText != null)
+                {
+                    Debug.Log(
+                        "GameManager: TimerText found inside Level."
+                    );
+                }
+                else
+                {
+                    Debug.LogWarning(
+                        "GameManager: TimerText was found, " +
+                        "but it has no TMP_Text component."
+                    );
+                }
+            }
+            else
+            {
+                Debug.LogWarning(
+                    "GameManager: Could not find '" +
+                    timerTextObjectName +
+                    "' inside Level."
+                );
+            }
+        }
+
+        // =====================================================
+        // TIMER COMPONENT
+        // =====================================================
+
+        if (timer == null)
+        {
+            timer =
+                FindFirstObjectByType<Timer>();
+
+            if (timer != null)
+            {
+                Debug.Log(
+                    "GameManager: Timer component found after Level activation."
+                );
+            }
+            else
+            {
+                Debug.LogWarning(
+                    "GameManager: Timer component could not be found."
+                );
+            }
+        }
+
+        // =====================================================
+        // ASSIGN TIMER TEXT TO TIMER COMPONENT
+        // =====================================================
+
+        if (timer != null &&
+            timerText != null)
+        {
+            timer.timerText = timerText;
+        }
+    }
+
+    // =========================================================
     // SCARF COLLECTED
     // =========================================================
 
@@ -397,6 +572,33 @@ public class GameManager : MonoBehaviour
         Debug.Log(
             "SCARF COLLECTED"
         );
+
+        // =====================================================
+        // STOP TIMER IMMEDIATELY
+        // =====================================================
+
+        if (timer != null)
+        {
+            timer.StopTimer();
+
+            Debug.Log(
+                "Timer stopped because scarf was collected."
+            );
+        }
+
+        // =====================================================
+        // FIND UI IF NEEDED
+        // =====================================================
+
+        if (scarfText == null ||
+            timerText == null)
+        {
+            FindLevelUITexts();
+        }
+
+        // =====================================================
+        // STOP EXISTING SCARF TEXT COROUTINE
+        // =====================================================
 
         if (scarfTextCoroutine != null)
         {
@@ -442,14 +644,12 @@ public class GameManager : MonoBehaviour
         {
             scarfText.gameObject.SetActive(true);
 
-            // Clear previous text
             scarfText.text = "";
 
             Debug.Log(
                 "Starting scarf text typewriter."
             );
 
-            // Typewriter effect
             yield return StartCoroutine(
                 TypewriterRoutine(
                     scarfText,
@@ -462,7 +662,6 @@ public class GameManager : MonoBehaviour
                 "Scarf text typewriter finished."
             );
 
-            // Keep complete text visible
             yield return new WaitForSecondsRealtime(
                 scarfTextDuration
             );
@@ -484,12 +683,29 @@ public class GameManager : MonoBehaviour
         }
 
         // =====================================================
-        // HIDE SCARF TEXT
+        // DISABLE COLLECTED TEXT
         // =====================================================
 
         if (scarfText != null)
         {
             scarfText.gameObject.SetActive(false);
+
+            Debug.Log(
+                "Collected Text DISABLED."
+            );
+        }
+
+        // =====================================================
+        // DISABLE TIMER TEXT
+        // =====================================================
+
+        if (timerText != null)
+        {
+            timerText.gameObject.SetActive(false);
+
+            Debug.Log(
+                "TimerText DISABLED because image sequence started."
+            );
         }
 
         // =====================================================
@@ -738,24 +954,12 @@ public class GameManager : MonoBehaviour
 
     private void StopGameplayAudio()
     {
-        // =====================================================
-        // STOP CAT AUDIO
-        // =====================================================
-
         if (catController != null)
         {
             catController.SetCatAudioEnabled(false);
         }
 
-        // =====================================================
-        // FIND IN-GAME SOUND
-        // =====================================================
-
         FindInGameSound();
-
-        // =====================================================
-        // STOP IN-GAME SOUND
-        // =====================================================
 
         if (inGameSoundAudioSource != null)
         {
@@ -778,18 +982,10 @@ public class GameManager : MonoBehaviour
 
     private void ResumeGameplayAudio()
     {
-        // =====================================================
-        // CAT AUDIO
-        // =====================================================
-
         if (catController != null)
         {
             catController.SetCatAudioEnabled(true);
         }
-
-        // =====================================================
-        // IN-GAME SOUND
-        // =====================================================
 
         if (inGameSoundAudioSource != null)
         {
@@ -1008,6 +1204,12 @@ public class GameManager : MonoBehaviour
         }
 
         // =====================================================
+        // FIND LEVEL UI REFERENCES
+        // =====================================================
+
+        FindLevelUITexts();
+
+        // =====================================================
         // FIND IN-GAME SOUND
         // =====================================================
 
@@ -1066,7 +1268,7 @@ public class GameManager : MonoBehaviour
             );
 
         // =====================================================
-        // WAIT FOR TYPEWRITER + DISPLAY TIME
+        // WAIT FOR TYPEWRITER + 1 SECOND
         // =====================================================
 
         yield return cutsceneEndTextCoroutine;
@@ -1074,7 +1276,7 @@ public class GameManager : MonoBehaviour
         cutsceneEndTextCoroutine = null;
 
         // =====================================================
-        // START TIMER AFTER TEXT FINISHES
+        // START TIMER
         // =====================================================
 
         if (timer != null)
@@ -1116,7 +1318,7 @@ public class GameManager : MonoBehaviour
         if (cutsceneEndText == null)
         {
             Debug.LogWarning(
-                "Cutscene End Text is not assigned."
+                "GameManager: TypeWritter reference is missing."
             );
 
             yield break;
@@ -1149,17 +1351,23 @@ public class GameManager : MonoBehaviour
         );
 
         // =====================================================
-        // KEEP TEXT VISIBLE
+        // WAIT 1 SECOND
         // =====================================================
 
         yield return new WaitForSecondsRealtime(
-            cutsceneEndTextDuration
+            cutsceneEndDisableDelay
         );
 
         // =====================================================
-        // HIDE TEXT
+        // DISABLE TYPEWRITTER
         // =====================================================
 
         cutsceneEndText.gameObject.SetActive(false);
+
+        Debug.Log(
+            "TypeWritter DISABLED after " +
+            cutsceneEndDisableDelay +
+            " second."
+        );
     }
 }

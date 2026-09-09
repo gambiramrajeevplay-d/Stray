@@ -2941,7 +2941,7 @@ GameObject:
   - component: {fileID: 778479314}
   m_Layer: 0
   m_Name: TypeWritter
-  m_TagString: Untagged
+  m_TagString: TypeWritter
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3095,12 +3095,14 @@ MonoBehaviour:
   scarfText: {fileID: 0}
   scarfMessage: "Their phone\u2026 They left the city. I need to find out where they
     went "
+  scarfTypewriterSpeed: 0.05
   scarfTextDuration: 3
   scarfPanel: {fileID: 322914350}
   scarfImageSequence: {fileID: 1301732790}
   fadeController: {fileID: 105541988}
   catController: {fileID: 0}
   timer: {fileID: 0}
+  timerText: {fileID: 0}
   cutsceneObject: {fileID: 1619578679}
   cutsceneCamera: {fileID: 817016433}
   playCutsceneOnStart: 1
@@ -3110,7 +3112,12 @@ MonoBehaviour:
   cutsceneEndMessage: "Something is here\u2026 I can smell my human."
   typewriterSpeed: 0.05
   cutsceneEndTextDuration: 3
+  cutsceneEndDisableDelay: 1
   levelGameObject: {fileID: 950287953}
+  collectedTextObjectName: Collected Text
+  typeWritterObjectName: TypeWritter
+  timerTextObjectName: TimerText
+  inGameSoundObjectName: InGameSound
   levelInitializeFrames: 5
 --- !u!4 &787140260
 Transform:
@@ -6879,7 +6886,7 @@ GameObject:
   - component: {fileID: 1690196977}
   m_Layer: 0
   m_Name: Collected Text
-  m_TagString: Untagged
+  m_TagString: Collected Text
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

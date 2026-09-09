@@ -1,4 +1,3 @@
-
 using TMPro;
 using UnityEngine;
 
@@ -8,6 +7,7 @@ public class Timer : MonoBehaviour
     [Tooltip("How many seconds the timer should run.")]
     public float timerDuration = 60f;
 
+    [Tooltip("TimerText inside Level > InGame UI Canvas.")]
     public TMP_Text timerText;
 
     private float currentTime;
@@ -15,29 +15,56 @@ public class Timer : MonoBehaviour
 
     private void Start()
     {
-        // Find Timer Text using the "TimerText" tag
-        GameObject timerObject =
-            GameObject.FindGameObjectWithTag("TimerText");
+        // =====================================================
+        // GET TIMER TEXT FROM GAMEMANAGER FIRST
+        // =====================================================
 
-        if (timerObject != null)
+        if (GameManager.Instance != null &&
+            GameManager.Instance.timerText != null)
         {
-            timerText = timerObject.GetComponent<TMP_Text>();
-        }
-        else
-        {
-            Debug.LogWarning(
-                "Timer: No GameObject with the tag 'TimerText' was found."
-            );
+            timerText = GameManager.Instance.timerText;
         }
 
-        // Timer does NOT start automatically.
+        // =====================================================
+        // FALLBACK - FIND USING TAG
+        // =====================================================
+
+        if (timerText == null)
+        {
+            GameObject timerObject =
+                GameObject.FindGameObjectWithTag("TimerText");
+
+            if (timerObject != null)
+            {
+                timerText =
+                    timerObject.GetComponent<TMP_Text>();
+            }
+            else
+            {
+                Debug.LogWarning(
+                    "Timer: No GameObject with the tag 'TimerText' was found."
+                );
+            }
+        }
+
+        // =====================================================
+        // TIMER DOES NOT START AUTOMATICALLY
+        // =====================================================
+
         timerRunning = false;
 
-        // Show initial timer value
+        // =====================================================
+        // INITIAL TIMER VALUE
+        // =====================================================
+
         currentTime = timerDuration;
+
         UpdateTimerText();
 
-        // Make sure scarf panel is hidden
+        // =====================================================
+        // MAKE SURE SCARF PANEL IS HIDDEN
+        // =====================================================
+
         if (GameManager.Instance != null &&
             GameManager.Instance.scarfPanel != null)
         {
@@ -55,6 +82,7 @@ public class Timer : MonoBehaviour
         if (currentTime <= 0f)
         {
             currentTime = 0f;
+
             timerRunning = false;
 
             UpdateTimerText();
@@ -74,12 +102,29 @@ public class Timer : MonoBehaviour
     public void StartTimer()
     {
         currentTime = timerDuration;
+
         timerRunning = true;
+
+        // Make sure TimerText is available
+        if (timerText == null &&
+            GameManager.Instance != null)
+        {
+            timerText =
+                GameManager.Instance.timerText;
+        }
+
+        // Make TimerText visible when timer starts
+        if (timerText != null)
+        {
+            timerText.gameObject.SetActive(true);
+        }
 
         UpdateTimerText();
 
         Debug.Log(
-            "Timer started: " + timerDuration + " seconds."
+            "Timer started: " +
+            timerDuration +
+            " seconds."
         );
     }
 
@@ -146,6 +191,10 @@ public class Timer : MonoBehaviour
     public void StopTimer()
     {
         timerRunning = false;
+
+        Debug.Log(
+            "Timer stopped."
+        );
     }
 
     // =========================================================
@@ -155,7 +204,14 @@ public class Timer : MonoBehaviour
     public void RestartTimer()
     {
         currentTime = timerDuration;
+
         timerRunning = true;
+
+        // Show TimerText again
+        if (timerText != null)
+        {
+            timerText.gameObject.SetActive(true);
+        }
 
         if (GameManager.Instance != null &&
             GameManager.Instance.scarfPanel != null)
@@ -164,5 +220,9 @@ public class Timer : MonoBehaviour
         }
 
         UpdateTimerText();
+
+        Debug.Log(
+            "Timer restarted."
+        );
     }
 }

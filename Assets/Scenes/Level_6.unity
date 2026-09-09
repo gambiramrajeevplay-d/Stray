@@ -2955,12 +2955,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   scarfText: {fileID: 0}
   scarfMessage: This belongs to my human. They came this way
+  scarfTypewriterSpeed: 0.05
   scarfTextDuration: 3
   scarfPanel: {fileID: 322914350}
   scarfImageSequence: {fileID: 1301732790}
   fadeController: {fileID: 105541988}
   catController: {fileID: 0}
   timer: {fileID: 0}
+  timerText: {fileID: 0}
   cutsceneObject: {fileID: 1619578679}
   cutsceneCamera: {fileID: 817016433}
   playCutsceneOnStart: 1
@@ -2970,7 +2972,12 @@ MonoBehaviour:
   cutsceneEndMessage: The scent is getting stronger. I must be on the right path
   typewriterSpeed: 0.05
   cutsceneEndTextDuration: 3
+  cutsceneEndDisableDelay: 1
   levelGameObject: {fileID: 950287953}
+  collectedTextObjectName: Collected Text
+  typeWritterObjectName: TypeWritter
+  timerTextObjectName: TimerText
+  inGameSoundObjectName: InGameSound
   levelInitializeFrames: 5
 --- !u!4 &787140260
 Transform:
@@ -6305,7 +6312,7 @@ GameObject:
   - component: {fileID: 1652574427}
   m_Layer: 0
   m_Name: TypeWritter
-  m_TagString: Untagged
+  m_TagString: TypeWritter
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -6889,7 +6896,7 @@ GameObject:
   - component: {fileID: 1826685740}
   m_Layer: 0
   m_Name: Collected Text
-  m_TagString: Untagged
+  m_TagString: Collected Text
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

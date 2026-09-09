@@ -17,10 +17,29 @@ public class ScarfCollect : MonoBehaviour
 
         collected = true;
 
-        Debug.Log("Scarf collected by player.");
+        Debug.Log(
+            "Scarf collected by player."
+        );
+
+        // =====================================================
+        // STOP TIMER IMMEDIATELY
+        // =====================================================
 
         if (GameManager.Instance != null)
         {
+            if (GameManager.Instance.timer != null)
+            {
+                GameManager.Instance.timer.StopTimer();
+
+                Debug.Log(
+                    "Timer stopped because scarf was collected."
+                );
+            }
+
+            // =================================================
+            // START SCARF COLLECTION SEQUENCE
+            // =================================================
+
             GameManager.Instance.ScarfCollected();
         }
         else
@@ -29,6 +48,10 @@ public class ScarfCollect : MonoBehaviour
                 "ScarfCollect: GameManager.Instance is missing!"
             );
         }
+
+        // =====================================================
+        // DESTROY SCARF
+        // =====================================================
 
         Destroy(gameObject);
     }
