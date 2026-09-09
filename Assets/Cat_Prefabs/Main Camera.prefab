@@ -103,7 +103,7 @@ MonoBehaviour:
   positionSmoothTime: 0.15
   rotationSmoothTime: 0.5
   fixedPitch: 15
-  lookAtOffset: {x: 0, y: 0.49, z: 0}
+  lookAtOffset: {x: 0, y: 0.36, z: -0.3}
   lookAtSmoothTime: 0.12
   avoidObstacles: 1
   obstacleMask:

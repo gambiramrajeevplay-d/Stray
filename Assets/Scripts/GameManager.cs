@@ -7,22 +7,57 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
+    // =========================================================
+    // SCARF
+    // =========================================================
+
     [Header("Scarf")]
     public TMP_Text scarfText;
+
+    [Tooltip("Message displayed when the scarf is collected.")]
     public string scarfMessage = "You found the scarf!";
+
+    [Tooltip("Time between each character of the scarf text.")]
+    public float scarfTypewriterSpeed = 0.05f;
+
+    [Tooltip("How long the complete scarf text remains visible.")]
     public float scarfTextDuration = 3f;
+
+    // =========================================================
+    // SCARF PANEL
+    // =========================================================
 
     [Header("Scarf Panel")]
     public GameObject scarfPanel;
 
+    // =========================================================
+    // SCARF IMAGE SEQUENCE
+    // =========================================================
+
     [Header("Scarf Image Sequence")]
     public ScarfImageSequence scarfImageSequence;
+
+    // =========================================================
+    // FADE
+    // =========================================================
 
     [Header("Fade")]
     public FadeController fadeController;
 
+    // =========================================================
+    // CAT CONTROL
+    // =========================================================
+
     [Header("Cat Control")]
     public CatController catController;
+
+    // =========================================================
+    // TIMER
+    // =========================================================
+
+    [Header("Timer")]
+    [Tooltip("Timer that starts after the cutscene end text finishes.")]
+    public Timer timer;
 
     // =========================================================
     // CUTSCENE
@@ -34,14 +69,18 @@ public class GameManager : MonoBehaviour
     [Tooltip("Camera used during the cutscene.")]
     public Camera cutsceneCamera;
 
-    [Tooltip("How long the cutscene should play.")]
-    public float cutsceneDuration = 10f;
-
     [Tooltip("Play the cutscene automatically when the game starts.")]
     public bool playCutsceneOnStart = false;
 
     [Tooltip("If enabled, the cutscene can only be played once.")]
     public bool playCutsceneOnce = true;
+
+    // =========================================================
+    // CAMERA CUTSCENE
+    // =========================================================
+
+    [Header("Camera Cutscene")]
+    public CameraCutsceneMover cameraCutsceneMover;
 
     // =========================================================
     // CUTSCENE END TEXT
@@ -57,7 +96,7 @@ public class GameManager : MonoBehaviour
     [Tooltip("Time between each character.")]
     [SerializeField] private float typewriterSpeed = 0.05f;
 
-    [Tooltip("How long the complete text remains visible after typing.")]
+    [Tooltip("How long the complete text remains visible.")]
     [SerializeField] private float cutsceneEndTextDuration = 3f;
 
     // =========================================================
@@ -65,8 +104,27 @@ public class GameManager : MonoBehaviour
     // =========================================================
 
     [Header("Level")]
-    [Tooltip("This GameObject will be enabled after the cutscene ends.")]
+    [Tooltip("The gameplay level GameObject.")]
     public GameObject levelGameObject;
+
+    // =========================================================
+    // IN-GAME SOUND
+    // =========================================================
+
+    [Header("In-Game Sound")]
+    [Tooltip("Name of the gameplay sound GameObject inside the Level.")]
+    [SerializeField] private string inGameSoundObjectName = "InGameSound";
+
+    private AudioSource inGameSoundAudioSource;
+    private bool inGameSoundWasPlaying;
+
+    // =========================================================
+    // TRANSITION OPTIMIZATION
+    // =========================================================
+
+    [Header("Level Transition")]
+    [Tooltip("Number of frames to allow the level to initialize while screen is black.")]
+    [SerializeField] private int levelInitializeFrames = 5;
 
     // =========================================================
     // VARIABLES
@@ -77,10 +135,8 @@ public class GameManager : MonoBehaviour
 
     private Coroutine scarfTextCoroutine;
     private Coroutine cutsceneCoroutine;
-
-    // FIXED:
-    // Coroutine used for the cutscene ending typewriter text.
     private Coroutine cutsceneEndTextCoroutine;
+    private Coroutine cameraFinishedCoroutine;
 
     // =========================================================
     // AWAKE
@@ -88,6 +144,10 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
+        // =====================================================
+        // SINGLE GAME MANAGER
+        // =====================================================
+
         if (Instance == null)
         {
             Instance = this;
@@ -166,6 +226,52 @@ public class GameManager : MonoBehaviour
                 );
             }
         }
+
+        // =====================================================
+        // FIND CAMERA CUTSCENE MOVER
+        // =====================================================
+
+        if (cameraCutsceneMover == null)
+        {
+            cameraCutsceneMover =
+                FindFirstObjectByType<CameraCutsceneMover>();
+
+            if (cameraCutsceneMover != null)
+            {
+                Debug.Log(
+                    "GameManager: CameraCutsceneMover found automatically."
+                );
+            }
+            else
+            {
+                Debug.LogWarning(
+                    "GameManager: CameraCutsceneMover could not be found."
+                );
+            }
+        }
+
+        // =====================================================
+        // FIND TIMER
+        // =====================================================
+
+        if (timer == null)
+        {
+            timer =
+                FindFirstObjectByType<Timer>();
+
+            if (timer != null)
+            {
+                Debug.Log(
+                    "GameManager: Timer found automatically."
+                );
+            }
+            else
+            {
+                Debug.LogWarning(
+                    "GameManager: Timer could not be found."
+                );
+            }
+        }
     }
 
     // =========================================================
@@ -180,6 +286,7 @@ public class GameManager : MonoBehaviour
 
         if (scarfText != null)
         {
+            scarfText.text = "";
             scarfText.gameObject.SetActive(false);
         }
 
@@ -198,11 +305,12 @@ public class GameManager : MonoBehaviour
 
         if (cutsceneEndText != null)
         {
+            cutsceneEndText.text = "";
             cutsceneEndText.gameObject.SetActive(false);
         }
 
         // =====================================================
-        // LEVEL
+        // LEVEL OFF
         // =====================================================
 
         if (levelGameObject != null)
@@ -211,7 +319,7 @@ public class GameManager : MonoBehaviour
         }
 
         // =====================================================
-        // CUTSCENE
+        // CUTSCENE OFF
         // =====================================================
 
         if (cutsceneObject != null)
@@ -220,7 +328,7 @@ public class GameManager : MonoBehaviour
         }
 
         // =====================================================
-        // CUTSCENE CAMERA
+        // CUTSCENE CAMERA OFF
         // =====================================================
 
         if (cutsceneCamera != null)
@@ -230,7 +338,7 @@ public class GameManager : MonoBehaviour
         }
 
         // =====================================================
-        // CAT CONTROL
+        // CAT CONTROL OFF
         // =====================================================
 
         if (catController != null)
@@ -297,9 +405,10 @@ public class GameManager : MonoBehaviour
             );
         }
 
-        scarfTextCoroutine = StartCoroutine(
-            ScarfCollectedRoutine()
-        );
+        scarfTextCoroutine =
+            StartCoroutine(
+                ScarfCollectedRoutine()
+            );
     }
 
     // =========================================================
@@ -309,14 +418,16 @@ public class GameManager : MonoBehaviour
     private IEnumerator ScarfCollectedRoutine()
     {
         // =====================================================
+        // STOP GAMEPLAY AUDIO
+        // =====================================================
+
+        StopGameplayAudio();
+
+        // =====================================================
         // DISABLE CAT CONTROL
         // =====================================================
 
         SetCatControl(false);
-
-        // =====================================================
-        // HIDE SCARF PANEL
-        // =====================================================
 
         if (scarfPanel != null)
         {
@@ -324,29 +435,41 @@ public class GameManager : MonoBehaviour
         }
 
         // =====================================================
-        // SHOW TEXT
+        // SHOW SCARF TEXT
         // =====================================================
 
         if (scarfText != null)
         {
-            scarfText.text = scarfMessage;
             scarfText.gameObject.SetActive(true);
+
+            // Clear previous text
+            scarfText.text = "";
+
+            Debug.Log(
+                "Starting scarf text typewriter."
+            );
+
+            // Typewriter effect
+            yield return StartCoroutine(
+                TypewriterRoutine(
+                    scarfText,
+                    scarfMessage,
+                    scarfTypewriterSpeed
+                )
+            );
+
+            Debug.Log(
+                "Scarf text typewriter finished."
+            );
+
+            // Keep complete text visible
+            yield return new WaitForSecondsRealtime(
+                scarfTextDuration
+            );
         }
 
-        Debug.Log(
-            "Showing scarf text."
-        );
-
         // =====================================================
-        // WAIT
-        // =====================================================
-
-        yield return new WaitForSecondsRealtime(
-            scarfTextDuration
-        );
-
-        // =====================================================
-        // FADE TO BLACK
+        // FADE INTO IMAGE SEQUENCE
         // =====================================================
 
         if (fadeController != null)
@@ -361,7 +484,7 @@ public class GameManager : MonoBehaviour
         }
 
         // =====================================================
-        // HIDE TEXT
+        // HIDE SCARF TEXT
         // =====================================================
 
         if (scarfText != null)
@@ -370,7 +493,7 @@ public class GameManager : MonoBehaviour
         }
 
         // =====================================================
-        // START IMAGE SEQUENCE WHILE SCREEN IS BLACK
+        // PLAY IMAGE SEQUENCE
         // =====================================================
 
         if (scarfImageSequence != null)
@@ -391,7 +514,7 @@ public class GameManager : MonoBehaviour
         }
 
         // =====================================================
-        // FADE INTO IMAGE SEQUENCE
+        // FADE IN
         // =====================================================
 
         if (fadeController != null)
@@ -402,6 +525,41 @@ public class GameManager : MonoBehaviour
         }
 
         scarfTextCoroutine = null;
+    }
+
+    // =========================================================
+    // TYPEWRITER ROUTINE
+    // =========================================================
+
+    private IEnumerator TypewriterRoutine(
+        TMP_Text textComponent,
+        string message,
+        float characterSpeed)
+    {
+        if (textComponent == null)
+            yield break;
+
+        if (message == null)
+            message = "";
+
+        textComponent.text = "";
+
+        characterSpeed =
+            Mathf.Max(
+                0.001f,
+                characterSpeed
+            );
+
+        for (int i = 0;
+             i < message.Length;
+             i++)
+        {
+            textComponent.text += message[i];
+
+            yield return new WaitForSecondsRealtime(
+                characterSpeed
+            );
+        }
     }
 
     // =========================================================
@@ -421,24 +579,12 @@ public class GameManager : MonoBehaviour
             "Scarf sequence finished."
         );
 
-        // =====================================================
-        // FADE TO BLACK
-        // =====================================================
-
         if (fadeController != null)
         {
-            Debug.Log(
-                "Sequence finished. Fading to black."
-            );
-
             yield return StartCoroutine(
                 fadeController.FadeOutRoutine()
             );
         }
-
-        // =====================================================
-        // KEEP LEVEL ACTIVE
-        // =====================================================
 
         Debug.Log(
             "Level remains active after scarf sequence."
@@ -446,24 +592,12 @@ public class GameManager : MonoBehaviour
 
         yield return null;
 
-        // =====================================================
-        // KEEP CAT CONTROL DISABLED
-        // =====================================================
-
         SetCatControl(false);
-
-        // =====================================================
-        // SHOW FINAL SCARF PANEL
-        // =====================================================
 
         if (scarfPanel != null)
         {
             scarfPanel.SetActive(true);
         }
-
-        // =====================================================
-        // FADE BACK INTO LEVEL
-        // =====================================================
 
         if (fadeController != null)
         {
@@ -473,7 +607,8 @@ public class GameManager : MonoBehaviour
         }
 
         Debug.Log(
-            "Scarf panel shown. Cat controls remain disabled."
+            "Scarf panel shown. " +
+            "Cat controls remain disabled."
         );
     }
 
@@ -521,15 +656,184 @@ public class GameManager : MonoBehaviour
     }
 
     // =========================================================
+    // GAMEPLAY AUDIO
+    // =========================================================
+
+    private void FindInGameSound()
+    {
+        inGameSoundAudioSource = null;
+
+        if (levelGameObject == null)
+        {
+            Debug.LogWarning(
+                "GameManager: Level GameObject is not assigned."
+            );
+
+            return;
+        }
+
+        Transform soundTransform =
+            FindChildRecursive(
+                levelGameObject.transform,
+                inGameSoundObjectName
+            );
+
+        if (soundTransform != null)
+        {
+            inGameSoundAudioSource =
+                soundTransform.GetComponent<AudioSource>();
+
+            if (inGameSoundAudioSource != null)
+            {
+                Debug.Log(
+                    "GameManager: InGameSound AudioSource found."
+                );
+            }
+            else
+            {
+                Debug.LogWarning(
+                    "GameManager: InGameSound found, " +
+                    "but it has no AudioSource."
+                );
+            }
+        }
+        else
+        {
+            Debug.LogWarning(
+                "GameManager: Could not find InGameSound " +
+                "inside Level."
+            );
+        }
+    }
+
+    // =========================================================
+    // FIND CHILD RECURSIVELY
+    // =========================================================
+
+    private Transform FindChildRecursive(
+        Transform parent,
+        string objectName)
+    {
+        foreach (Transform child in parent)
+        {
+            if (child.name == objectName)
+                return child;
+
+            Transform result =
+                FindChildRecursive(
+                    child,
+                    objectName
+                );
+
+            if (result != null)
+                return result;
+        }
+
+        return null;
+    }
+
+    // =========================================================
+    // STOP GAMEPLAY AUDIO
+    // =========================================================
+
+    private void StopGameplayAudio()
+    {
+        // =====================================================
+        // STOP CAT AUDIO
+        // =====================================================
+
+        if (catController != null)
+        {
+            catController.SetCatAudioEnabled(false);
+        }
+
+        // =====================================================
+        // FIND IN-GAME SOUND
+        // =====================================================
+
+        FindInGameSound();
+
+        // =====================================================
+        // STOP IN-GAME SOUND
+        // =====================================================
+
+        if (inGameSoundAudioSource != null)
+        {
+            inGameSoundWasPlaying =
+                inGameSoundAudioSource.isPlaying;
+
+            inGameSoundAudioSource.Stop();
+
+            inGameSoundAudioSource.enabled = false;
+
+            Debug.Log(
+                "InGameSound DISABLED."
+            );
+        }
+    }
+
+    // =========================================================
+    // RESUME GAMEPLAY AUDIO
+    // =========================================================
+
+    private void ResumeGameplayAudio()
+    {
+        // =====================================================
+        // CAT AUDIO
+        // =====================================================
+
+        if (catController != null)
+        {
+            catController.SetCatAudioEnabled(true);
+        }
+
+        // =====================================================
+        // IN-GAME SOUND
+        // =====================================================
+
+        if (inGameSoundAudioSource != null)
+        {
+            inGameSoundAudioSource.enabled = true;
+
+            if (inGameSoundWasPlaying)
+            {
+                inGameSoundAudioSource.Play();
+            }
+
+            Debug.Log(
+                "InGameSound ENABLED."
+            );
+        }
+    }
+
+    // =========================================================
+    // CLOSE SCARF PANEL
+    // =========================================================
+
+    public void CloseScarfPanel()
+    {
+        if (scarfPanel != null)
+        {
+            scarfPanel.SetActive(false);
+        }
+
+        ResumeGameplayAudio();
+
+        SetCatControl(true);
+
+        Debug.Log(
+            "Scarf panel closed. " +
+            "Gameplay audio resumed."
+        );
+    }
+
+    // =========================================================
     // RESTART
     // =========================================================
 
     public void RestartScene()
     {
         Time.timeScale = 1f;
-
-        Scene currentScene =
-            SceneManager.GetActiveScene();
 
         SceneManager.LoadScene(
             "Level_Selection"
@@ -573,33 +877,17 @@ public class GameManager : MonoBehaviour
     {
         cutscenePlayed = true;
 
-        // =====================================================
-        // CAT CONTROL OFF
-        // =====================================================
-
         SetCatControl(false);
-
-        // =====================================================
-        // LEVEL OFF
-        // =====================================================
 
         if (levelGameObject != null)
         {
             levelGameObject.SetActive(false);
         }
 
-        // =====================================================
-        // CUTSCENE ON
-        // =====================================================
-
         if (cutsceneObject != null)
         {
             cutsceneObject.SetActive(true);
         }
-
-        // =====================================================
-        // CUTSCENE CAMERA ON
-        // =====================================================
 
         if (cutsceneCamera != null)
         {
@@ -608,15 +896,62 @@ public class GameManager : MonoBehaviour
         }
 
         Debug.Log(
-            "CUTSCENE STARTED"
+            "CUTSCENE CAMERA ENABLED"
         );
 
-        // =====================================================
-        // WAIT FOR CUTSCENE
-        // =====================================================
+        if (cameraCutsceneMover == null)
+        {
+            cameraCutsceneMover =
+                FindFirstObjectByType<CameraCutsceneMover>();
+        }
 
-        yield return new WaitForSecondsRealtime(
-            cutsceneDuration
+        if (cameraCutsceneMover != null)
+        {
+            Debug.Log(
+                "STARTING CAMERA MOVEMENT"
+            );
+
+            cameraCutsceneMover.StartCutscene();
+        }
+        else
+        {
+            Debug.LogError(
+                "CameraCutsceneMover NOT FOUND!"
+            );
+
+            StartCoroutine(
+                CameraCutsceneFinishedRoutine()
+            );
+        }
+
+        yield break;
+    }
+
+    // =========================================================
+    // CAMERA CUTSCENE FINISHED
+    // =========================================================
+
+    public void CameraCutsceneFinished()
+    {
+        if (cameraFinishedCoroutine != null)
+        {
+            return;
+        }
+
+        cameraFinishedCoroutine =
+            StartCoroutine(
+                CameraCutsceneFinishedRoutine()
+            );
+    }
+
+    // =========================================================
+    // CAMERA FINISHED ROUTINE
+    // =========================================================
+
+    private IEnumerator CameraCutsceneFinishedRoutine()
+    {
+        Debug.Log(
+            "GAME MANAGER: CAMERA CUTSCENE FINISHED"
         );
 
         // =====================================================
@@ -635,7 +970,7 @@ public class GameManager : MonoBehaviour
         }
 
         // =====================================================
-        // DISABLE CUTSCENE CAMERA
+        // CUTSCENE CAMERA OFF
         // =====================================================
 
         if (cutsceneCamera != null)
@@ -645,7 +980,7 @@ public class GameManager : MonoBehaviour
         }
 
         // =====================================================
-        // DISABLE CUTSCENE OBJECT
+        // CUTSCENE OBJECT OFF
         // =====================================================
 
         if (cutsceneObject != null)
@@ -659,14 +994,45 @@ public class GameManager : MonoBehaviour
 
         if (levelGameObject != null)
         {
+            Debug.Log(
+                "ENABLING LEVEL WHILE SCREEN IS BLACK"
+            );
+
             levelGameObject.SetActive(true);
         }
+        else
+        {
+            Debug.LogWarning(
+                "GameManager: Level GameObject is not assigned."
+            );
+        }
+
+        // =====================================================
+        // FIND IN-GAME SOUND
+        // =====================================================
+
+        FindInGameSound();
+
+        // =====================================================
+        // INITIALIZE LEVEL
+        // =====================================================
+
+        int frames =
+            Mathf.Max(
+                1,
+                levelInitializeFrames
+            );
 
         Debug.Log(
-            "LEVEL ENABLED WHILE SCREEN IS BLACK"
+            "INITIALIZING LEVEL FOR " +
+            frames +
+            " FRAMES"
         );
 
-        yield return null;
+        for (int i = 0; i < frames; i++)
+        {
+            yield return null;
+        }
 
         // =====================================================
         // FADE INTO GAMEPLAY
@@ -674,13 +1040,17 @@ public class GameManager : MonoBehaviour
 
         if (fadeController != null)
         {
+            Debug.Log(
+                "CUTSCENE: FADING INTO GAMEPLAY"
+            );
+
             yield return StartCoroutine(
                 fadeController.FadeInRoutine()
             );
         }
 
         // =====================================================
-        // TYPEWRITER TEXT
+        // CUTSCENE END TYPEWRITER
         // =====================================================
 
         if (cutsceneEndTextCoroutine != null)
@@ -695,9 +1065,33 @@ public class GameManager : MonoBehaviour
                 CutsceneEndTextRoutine()
             );
 
+        // =====================================================
+        // WAIT FOR TYPEWRITER + DISPLAY TIME
+        // =====================================================
+
         yield return cutsceneEndTextCoroutine;
 
         cutsceneEndTextCoroutine = null;
+
+        // =====================================================
+        // START TIMER AFTER TEXT FINISHES
+        // =====================================================
+
+        if (timer != null)
+        {
+            timer.StartTimer();
+
+            Debug.Log(
+                "TIMER STARTED AFTER " +
+                "CUTSCENE END TYPEWRITER FINISHED"
+            );
+        }
+        else
+        {
+            Debug.LogWarning(
+                "GameManager: Timer reference is missing."
+            );
+        }
 
         // =====================================================
         // ENABLE CAT CONTROL
@@ -710,6 +1104,7 @@ public class GameManager : MonoBehaviour
         );
 
         cutsceneCoroutine = null;
+        cameraFinishedCoroutine = null;
     }
 
     // =========================================================
@@ -728,34 +1123,33 @@ public class GameManager : MonoBehaviour
         }
 
         // =====================================================
-        // ACTIVATE TEXT
+        // SHOW TEXT
         // =====================================================
 
         cutsceneEndText.gameObject.SetActive(true);
 
         // =====================================================
-        // CLEAR TEXT
+        // TYPEWRITER
         // =====================================================
 
-        cutsceneEndText.text = "";
+        Debug.Log(
+            "Starting cutscene end text typewriter."
+        );
 
-        // =====================================================
-        // TYPE EACH CHARACTER
-        // =====================================================
-
-        string message = cutsceneEndMessage;
-
-        for (int i = 0; i < message.Length; i++)
-        {
-            cutsceneEndText.text += message[i];
-
-            yield return new WaitForSecondsRealtime(
+        yield return StartCoroutine(
+            TypewriterRoutine(
+                cutsceneEndText,
+                cutsceneEndMessage,
                 typewriterSpeed
-            );
-        }
+            )
+        );
+
+        Debug.Log(
+            "Cutscene end text typewriter finished."
+        );
 
         // =====================================================
-        // KEEP COMPLETE TEXT ON SCREEN
+        // KEEP TEXT VISIBLE
         // =====================================================
 
         yield return new WaitForSecondsRealtime(

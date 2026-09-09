@@ -1147,7 +1147,7 @@ MonoBehaviour:
   groundCheckRadius: 0.2
   groundMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 64
   stairRayOrigin: {fileID: 1467659157531664055}
   stairRayDistance: 0.3
   stairMask:
@@ -1155,7 +1155,7 @@ MonoBehaviour:
     m_Bits: 256
   stairRayHeight: 0.15
   stairEndDelay: 0.25
-  stairCooldown: 0
+  stairCooldown: 0.4
   stairUpAngle: -50
   stairLockYRotation: -90
   stairRotationSmoothTime: 0.15

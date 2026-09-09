@@ -57,74 +57,87 @@ public class CatController : MonoBehaviour
     [SerializeField] private float minimumAnimationSpeed = 0.5f;
     [SerializeField] private float maximumAnimationSpeed = 1.5f;
 
-    // =========================================================
+    // ============================================================
+    // AUDIO
+    // ============================================================
+
+    [Header("Footstep Audio")]
+    [Tooltip("Assign the cat footstep sound clip.")]
+    [SerializeField] private AudioClip footstepClip;
+
+    [Tooltip("Time between each footstep.")]
+    [SerializeField] private float footstepInterval = 0.35f;
+
+    [Tooltip("Minimum movement speed required to play footsteps.")]
+    [SerializeField] private float minimumFootstepSpeed = 0.1f;
+
+    [Tooltip("Footstep volume.")]
+    [Range(0f, 1f)]
+    [SerializeField] private float footstepVolume = 1f;
+
+    [Header("Meow Audio")]
+    [Tooltip("Assign the cat meow sound clip.")]
+    [SerializeField] private AudioClip meowClip;
+
+    [Tooltip("Time between automatic meows.")]
+    [SerializeField] private float meowInterval = 5f;
+
+    [Tooltip("Meow volume.")]
+    [Range(0f, 1f)]
+    [SerializeField] private float meowVolume = 1f;
+
+    // Automatically created AudioSources
+    private AudioSource footstepAudioSource;
+    private AudioSource meowAudioSource;
+
+    // Controls whether cat audio is allowed to play
+    private bool catAudioEnabled = true;
+
+    // ============================================================
     // COMPONENTS
-    // =========================================================
+    // ============================================================
 
     private Rigidbody rb;
     private CapsuleCollider catCollider;
     private Transform tf;
 
-    // =========================================================
     // GROUND
-    // =========================================================
-
     private bool isGrounded;
     private float baseGravityY;
 
-    // =========================================================
     // INPUT
-    // =========================================================
-
     private float inputX;
     private float inputZ;
     private bool jumpQueued;
 
-    // =========================================================
     // MOVEMENT
-    // =========================================================
-
     private float smoothForwardSpeed;
     private float forwardSpeedSmoothRef;
 
-    // =========================================================
     // TURNING
-    // =========================================================
-
     private float smoothTurnSpeed;
     private float turnSpeedSmoothRef;
 
-    // =========================================================
     // STAIR
-    // =========================================================
-
     private float targetStairAngle;
     private float currentStairAngle;
     private float stairAngleVelocity;
-
     private bool isAutoClimbing;
-
     private float stairNotDetectedTimer;
     private float stairCooldownTimer;
-
     private float stairVerticalVelocity;
 
-    // =========================================================
     // STAIR Y ROTATION
-    // =========================================================
-
     private float stairYawVelocity;
 
-    // =========================================================
     // BOX RIDING
-    // =========================================================
-
     private PushableCube currentBox;
 
-    // =========================================================
-    // ANIMATOR HASHES
-    // =========================================================
+    // AUDIO TIMERS
+    private float footstepTimer;
+    private float meowTimer;
 
+    // ANIMATOR HASHES
     private static readonly int VelXHash =
         Animator.StringToHash("VelocityX");
 
@@ -137,18 +150,100 @@ public class CatController : MonoBehaviour
     private static readonly int JumpHash =
         Animator.StringToHash("Jump");
 
-    // =========================================================
     // PUBLIC
-    // =========================================================
-
     public float InputX => inputX;
     public float InputZ => inputZ;
-
     public bool IsAutoClimbing => isAutoClimbing;
 
-    // =========================================================
+    // ============================================================
+    // AWAKE
+    // ============================================================
+
+    private void Awake()
+    {
+        CreateAudioSources();
+    }
+
+    // ============================================================
+    // CREATE AUDIO SOURCES
+    // ============================================================
+
+    private void CreateAudioSources()
+    {
+        // ========================================================
+        // FOOTSTEP AUDIO SOURCE
+        // ========================================================
+
+        Transform existingFootstep =
+            transform.Find("FootstepAudio");
+
+        if (existingFootstep != null)
+        {
+            footstepAudioSource =
+                existingFootstep.GetComponent<AudioSource>();
+        }
+
+        if (footstepAudioSource == null)
+        {
+            GameObject footstepObject =
+                new GameObject("FootstepAudio");
+
+            footstepObject.transform.SetParent(transform);
+
+            footstepObject.transform.localPosition =
+                Vector3.zero;
+
+            footstepObject.transform.localRotation =
+                Quaternion.identity;
+
+            footstepAudioSource =
+                footstepObject.AddComponent<AudioSource>();
+        }
+
+        footstepAudioSource.playOnAwake = false;
+        footstepAudioSource.loop = false;
+        footstepAudioSource.spatialBlend = 1f;
+        footstepAudioSource.volume = footstepVolume;
+
+        // ========================================================
+        // MEOW AUDIO SOURCE
+        // ========================================================
+
+        Transform existingMeow =
+            transform.Find("MeowAudio");
+
+        if (existingMeow != null)
+        {
+            meowAudioSource =
+                existingMeow.GetComponent<AudioSource>();
+        }
+
+        if (meowAudioSource == null)
+        {
+            GameObject meowObject =
+                new GameObject("MeowAudio");
+
+            meowObject.transform.SetParent(transform);
+
+            meowObject.transform.localPosition =
+                Vector3.zero;
+
+            meowObject.transform.localRotation =
+                Quaternion.identity;
+
+            meowAudioSource =
+                meowObject.AddComponent<AudioSource>();
+        }
+
+        meowAudioSource.playOnAwake = false;
+        meowAudioSource.loop = false;
+        meowAudioSource.spatialBlend = 1f;
+        meowAudioSource.volume = meowVolume;
+    }
+
+    // ============================================================
     // START
-    // =========================================================
+    // ============================================================
 
     private void Start()
     {
@@ -170,30 +265,100 @@ public class CatController : MonoBehaviour
             Physics.gravity.y;
 
         if (animator == null)
+            animator = GetComponent<Animator>();
+
+        // Make sure both AudioSources exist
+        if (footstepAudioSource == null ||
+            meowAudioSource == null)
         {
-            animator =
-                GetComponent<Animator>();
+            CreateAudioSources();
         }
+
+        footstepAudioSource.volume =
+            footstepVolume;
+
+        meowAudioSource.volume =
+            meowVolume;
+
+        // Start meow timer
+        meowTimer =
+            meowInterval;
+
+        footstepTimer = 0f;
 
         currentStairAngle = 0f;
         targetStairAngle = 0f;
     }
 
-    // =========================================================
+    // ============================================================
+    // ENABLE / DISABLE CAT AUDIO
+    // ============================================================
+
+    public void SetCatAudioEnabled(bool enabled)
+    {
+        catAudioEnabled = enabled;
+
+        // --------------------------------------------------------
+        // FOOTSTEP
+        // --------------------------------------------------------
+
+        if (footstepAudioSource != null)
+        {
+            if (!enabled)
+            {
+                footstepAudioSource.Stop();
+            }
+
+            footstepAudioSource.enabled =
+                enabled;
+        }
+
+        // --------------------------------------------------------
+        // MEOW
+        // --------------------------------------------------------
+
+        if (meowAudioSource != null)
+        {
+            if (!enabled)
+            {
+                meowAudioSource.Stop();
+            }
+
+            meowAudioSource.enabled =
+                enabled;
+        }
+
+        // Reset footstep timer
+        footstepTimer = 0f;
+
+        // Restart meow countdown when audio is enabled again
+        if (enabled)
+        {
+            meowTimer =
+                meowInterval;
+        }
+
+        Debug.Log(
+            "Cat Audio = " +
+            (enabled ? "ENABLED" : "DISABLED")
+        );
+    }
+
+    // ============================================================
     // UPDATE
-    // =========================================================
+    // ============================================================
 
     private void Update()
     {
         if (stairCooldownTimer > 0f)
-        {
             stairCooldownTimer -=
                 Time.deltaTime;
-        }
 
-        // =====================================================
-        // CONTROL LOCK
-        // =====================================================
+        // Only update meow if audio is enabled
+        if (catAudioEnabled)
+        {
+            UpdateMeowAudio();
+        }
 
         if (!canControl)
         {
@@ -202,34 +367,22 @@ public class CatController : MonoBehaviour
             jumpQueued = false;
 
             if (isAutoClimbing)
-            {
                 FinishAutoClimb();
-            }
 
             UpdateAnimator();
+
+            if (catAudioEnabled)
+                UpdateFootstepAudio();
 
             return;
         }
 
-        // =====================================================
-        // STAIR DETECTION
-        // =====================================================
-
         CheckForStairs();
-
-        // =====================================================
-        // INPUT
-        // =====================================================
 
         if (isAutoClimbing)
         {
-            // Completely lock player movement input.
             inputX = 0f;
-
-            // Automatically move forward.
             inputZ = 1f;
-
-            // No jumping while climbing.
             jumpQueued = false;
         }
         else
@@ -240,34 +393,132 @@ public class CatController : MonoBehaviour
             inputZ =
                 Input.GetAxisRaw("Vertical");
 
-            // No backward movement.
+            // Prevent moving backwards
             if (inputZ < 0f)
-            {
                 inputZ = 0f;
-            }
-
-            // =================================================
-            // SINGLE JUMP
-            // =================================================
 
             if (isGrounded &&
-                (Input.GetKeyDown(KeyCode.JoystickButton0) ||
-                 Input.GetKeyDown(KeyCode.Space)))
+                (Input.GetKeyDown(
+                    KeyCode.JoystickButton0) ||
+                 Input.GetKeyDown(
+                    KeyCode.Space)))
             {
                 jumpQueued = true;
             }
         }
 
-        // =====================================================
-        // ANIMATOR
-        // =====================================================
-
         UpdateAnimator();
+
+        if (catAudioEnabled)
+        {
+            UpdateFootstepAudio();
+        }
     }
 
-    // =========================================================
+    // ============================================================
+    // FOOTSTEP AUDIO
+    // ============================================================
+
+    private void UpdateFootstepAudio()
+    {
+        if (!catAudioEnabled)
+            return;
+
+        if (footstepAudioSource == null ||
+            footstepClip == null)
+            return;
+
+        bool isMoving =
+            Mathf.Abs(
+                smoothForwardSpeed) >
+            minimumFootstepSpeed;
+
+        // No footsteps while in air
+        if (!isGrounded)
+        {
+            footstepTimer = 0f;
+            return;
+        }
+
+        // No footsteps while standing
+        if (!isMoving)
+        {
+            footstepTimer = 0f;
+            return;
+        }
+
+        footstepTimer -=
+            Time.deltaTime;
+
+        if (footstepTimer <= 0f)
+        {
+            PlayFootstep();
+
+            footstepTimer =
+                Mathf.Max(
+                    0.05f,
+                    footstepInterval);
+        }
+    }
+
+    private void PlayFootstep()
+    {
+        if (!catAudioEnabled)
+            return;
+
+        if (footstepAudioSource == null ||
+            footstepClip == null)
+            return;
+
+        footstepAudioSource.PlayOneShot(
+            footstepClip,
+            footstepVolume);
+    }
+
+    // ============================================================
+    // MEOW AUDIO
+    // ============================================================
+
+    private void UpdateMeowAudio()
+    {
+        if (!catAudioEnabled)
+            return;
+
+        if (meowAudioSource == null ||
+            meowClip == null)
+            return;
+
+        meowTimer -=
+            Time.deltaTime;
+
+        if (meowTimer <= 0f)
+        {
+            PlayMeow();
+
+            meowTimer =
+                Mathf.Max(
+                    0.1f,
+                    meowInterval);
+        }
+    }
+
+    private void PlayMeow()
+    {
+        if (!catAudioEnabled)
+            return;
+
+        if (meowAudioSource == null ||
+            meowClip == null)
+            return;
+
+        meowAudioSource.PlayOneShot(
+            meowClip,
+            meowVolume);
+    }
+
+    // ============================================================
     // ANIMATOR
-    // =========================================================
+    // ============================================================
 
     private void UpdateAnimator()
     {
@@ -280,46 +531,34 @@ public class CatController : MonoBehaviour
                 VelZHash,
                 Mathf.Max(
                     smoothForwardSpeed,
-                    stairAnimationSpeed
-                )
-            );
+                    stairAnimationSpeed));
 
             animator.SetFloat(
                 VelXHash,
-                0f
-            );
+                0f);
 
             animator.SetBool(
                 GroundedHash,
-                true
-            );
+                true);
         }
         else
         {
             animator.SetFloat(
                 VelZHash,
-                smoothForwardSpeed
-            );
+                smoothForwardSpeed);
 
             animator.SetFloat(
                 VelXHash,
-                0f
-            );
+                0f);
 
             animator.SetBool(
                 GroundedHash,
-                isGrounded
-            );
+                isGrounded);
         }
-
-        // =====================================================
-        // ANIMATION SPEED
-        // =====================================================
 
         float actualSpeed =
             Mathf.Abs(
-                smoothForwardSpeed
-            );
+                smoothForwardSpeed);
 
         if (actualSpeed > 0.01f)
         {
@@ -328,8 +567,7 @@ public class CatController : MonoBehaviour
                     actualSpeed /
                     animationReferenceSpeed,
                     minimumAnimationSpeed,
-                    maximumAnimationSpeed
-                );
+                    maximumAnimationSpeed);
         }
         else
         {
@@ -337,16 +575,12 @@ public class CatController : MonoBehaviour
         }
     }
 
-    // =========================================================
+    // ============================================================
     // FIXED UPDATE
-    // =========================================================
+    // ============================================================
 
     private void FixedUpdate()
     {
-        // =====================================================
-        // GROUND CHECK
-        // =====================================================
-
         if (groundCheck != null)
         {
             isGrounded =
@@ -354,17 +588,12 @@ public class CatController : MonoBehaviour
                     groundCheck.position,
                     groundCheckRadius,
                     groundMask,
-                    QueryTriggerInteraction.Ignore
-                );
+                    QueryTriggerInteraction.Ignore);
         }
         else
         {
             isGrounded = false;
         }
-
-        // =====================================================
-        // CONTROL LOCK
-        // =====================================================
 
         if (!canControl)
         {
@@ -373,16 +602,14 @@ public class CatController : MonoBehaviour
                     smoothForwardSpeed,
                     0f,
                     ref forwardSpeedSmoothRef,
-                    velocitySmoothTime
-                );
+                    velocitySmoothTime);
 
             smoothTurnSpeed =
                 Mathf.SmoothDamp(
                     smoothTurnSpeed,
                     0f,
                     ref turnSpeedSmoothRef,
-                    turnSmoothTime
-                );
+                    turnSmoothTime);
 
             Vector3 lockedVelocity =
                 rb.velocity;
@@ -413,62 +640,39 @@ public class CatController : MonoBehaviour
             return;
         }
 
-        // =====================================================
-        // TARGET SPEED
-        // =====================================================
-
         float targetSpeed;
 
         if (isAutoClimbing)
-        {
             targetSpeed =
                 stairMoveSpeed;
-        }
         else
-        {
             targetSpeed =
                 inputZ * moveSpeed;
-        }
 
         smoothForwardSpeed =
             Mathf.SmoothDamp(
                 smoothForwardSpeed,
                 targetSpeed,
                 ref forwardSpeedSmoothRef,
-                velocitySmoothTime
-            );
-
-        // =====================================================
-        // YAW
-        // =====================================================
+                velocitySmoothTime);
 
         float currentYaw =
             rb.rotation.eulerAngles.y;
 
         if (isAutoClimbing)
         {
-            // =================================================
-            // LOCK Y ROTATION TO -90
-            // =================================================
-
             currentYaw =
                 Mathf.SmoothDampAngle(
                     currentYaw,
                     stairLockYRotation,
                     ref stairYawVelocity,
-                    stairRotationSmoothTime
-                );
+                    stairRotationSmoothTime);
 
-            // Player turning is completely disabled.
             smoothTurnSpeed = 0f;
             turnSpeedSmoothRef = 0f;
         }
         else
         {
-            // =================================================
-            // NORMAL ROTATION
-            // =================================================
-
             float targetTurn =
                 inputX * turnSpeed;
 
@@ -477,10 +681,10 @@ public class CatController : MonoBehaviour
                     smoothTurnSpeed,
                     targetTurn,
                     ref turnSpeedSmoothRef,
-                    turnSmoothTime
-                );
+                    turnSmoothTime);
 
-            if (Mathf.Abs(smoothTurnSpeed) > 0.01f)
+            if (Mathf.Abs(
+                smoothTurnSpeed) > 0.01f)
             {
                 currentYaw +=
                     smoothTurnSpeed *
@@ -488,44 +692,31 @@ public class CatController : MonoBehaviour
             }
         }
 
-        // =====================================================
-        // STAIR ROTATION
-        // =====================================================
-
         currentStairAngle =
             Mathf.SmoothDamp(
                 currentStairAngle,
                 targetStairAngle,
                 ref stairAngleVelocity,
-                stairRotationSmoothTime
-            );
+                stairRotationSmoothTime);
 
         Quaternion finalRotation =
             Quaternion.Euler(
                 currentStairAngle,
                 currentYaw,
-                0f
-            );
+                0f);
 
         rb.MoveRotation(
-            finalRotation
-        );
-
-        // =====================================================
-        // VELOCITY
-        // =====================================================
+            finalRotation);
 
         Vector3 velocity =
             rb.velocity;
 
-        // =====================================================
-        // AUTO STAIR MOVEMENT
-        // =====================================================
+        // ========================================================
+        // STAIR MOVEMENT
+        // ========================================================
 
         if (isAutoClimbing)
         {
-            // Cat always moves in its locked forward
-            // direction while climbing.
             Vector3 stairForward =
                 finalRotation *
                 Vector3.forward;
@@ -548,24 +739,19 @@ public class CatController : MonoBehaviour
                     stairVerticalVelocity,
                     targetVerticalVelocity,
                     ref stairVerticalVelocity,
-                    stairVerticalSmoothTime
-                );
+                    stairVerticalSmoothTime);
 
             velocity.y =
                 stairVerticalVelocity;
         }
         else
         {
-            // =================================================
-            // NORMAL MOVEMENT
-            // =================================================
-
             Vector3 forward =
                 Quaternion.Euler(
                     0f,
                     currentYaw,
-                    0f
-                ) * Vector3.forward;
+                    0f) *
+                Vector3.forward;
 
             Vector3 movement =
                 forward *
@@ -577,9 +763,9 @@ public class CatController : MonoBehaviour
             velocity.z =
                 movement.z;
 
-            // =================================================
-            // SINGLE JUMP
-            // =================================================
+            // ====================================================
+            // JUMP
+            // ====================================================
 
             if (jumpQueued)
             {
@@ -587,40 +773,29 @@ public class CatController : MonoBehaviour
                 {
                     float gravity =
                         Mathf.Abs(
-                            baseGravityY
-                        );
+                            baseGravityY);
 
                     velocity.y =
                         Mathf.Sqrt(
                             2f *
                             jumpHeight *
-                            gravity
-                        );
-
-                    // =================================================
-                    // JUMP ANIMATION
-                    // =================================================
+                            gravity);
 
                     if (animator != null)
                     {
                         animator.ResetTrigger(
-                            JumpHash
-                        );
+                            JumpHash);
 
                         animator.SetTrigger(
-                            JumpHash
-                        );
+                            JumpHash);
                     }
 
+                    footstepTimer = 0f;
                     currentBox = null;
                 }
 
                 jumpQueued = false;
             }
-
-            // =================================================
-            // GRAVITY
-            // =================================================
 
             float gravityMultiplier =
                 velocity.y < 0f
@@ -633,24 +808,20 @@ public class CatController : MonoBehaviour
                 Time.fixedDeltaTime;
         }
 
-        // =====================================================
-        // APPLY VELOCITY
-        // =====================================================
-
         rb.velocity =
             velocity;
     }
 
-    // =========================================================
-    // PUSH BOX
-    // =========================================================
+    // ============================================================
+    // PUSHABLE CUBE
+    // ============================================================
 
     private void OnCollisionStay(
         Collision collision)
     {
         PushableCube cube =
-            collision.collider
-                .GetComponent<PushableCube>();
+            collision.collider.GetComponent<
+                PushableCube>();
 
         if (cube == null)
             return;
@@ -662,8 +833,7 @@ public class CatController : MonoBehaviour
             new Vector3(
                 catVelocity.x,
                 0f,
-                catVelocity.z
-            );
+                catVelocity.z);
 
         bool standingOnBox = false;
 
@@ -682,15 +852,11 @@ public class CatController : MonoBehaviour
         }
 
         if (standingOnBox)
-        {
             currentBox = cube;
-        }
 
         if (horizontalVelocity.magnitude <
             pushMinSpeed)
-        {
             return;
-        }
 
         Vector3 pushDirection =
             horizontalVelocity.normalized;
@@ -710,40 +876,32 @@ public class CatController : MonoBehaviour
 
             if (directionToCube.sqrMagnitude <
                 0.001f)
-            {
                 continue;
-            }
 
             directionToCube.Normalize();
 
             float pushDot =
                 Vector3.Dot(
                     pushDirection,
-                    directionToCube
-                );
+                    directionToCube);
 
             if (pushDot > 0.25f)
             {
                 cube.Push(
                     pushDirection,
-                    horizontalVelocity.magnitude
-                );
+                    horizontalVelocity.magnitude);
 
                 break;
             }
         }
     }
 
-    // =========================================================
-    // CLEAR BOX
-    // =========================================================
-
     private void OnCollisionExit(
         Collision collision)
     {
         PushableCube cube =
-            collision.collider
-                .GetComponent<PushableCube>();
+            collision.collider.GetComponent<
+                PushableCube>();
 
         if (cube != null &&
             cube == currentBox)
@@ -752,9 +910,9 @@ public class CatController : MonoBehaviour
         }
     }
 
-    // =========================================================
-    // STAIRS
-    // =========================================================
+    // ============================================================
+    // STAIR DETECTION
+    // ============================================================
 
     private void CheckForStairs()
     {
@@ -789,15 +947,12 @@ public class CatController : MonoBehaviour
                 out RaycastHit hit,
                 stairRayDistance,
                 stairMask,
-                QueryTriggerInteraction.Ignore
-            );
+                QueryTriggerInteraction.Ignore);
 
         if (!isAutoClimbing)
         {
             if (stairDetected)
-            {
                 StartAutoClimb();
-            }
 
             return;
         }
@@ -819,9 +974,9 @@ public class CatController : MonoBehaviour
         }
     }
 
-    // =========================================================
+    // ============================================================
     // START STAIR CLIMB
-    // =========================================================
+    // ============================================================
 
     private void StartAutoClimb()
     {
@@ -840,15 +995,14 @@ public class CatController : MonoBehaviour
 
         jumpQueued = false;
 
-        // Reset turning.
         smoothTurnSpeed = 0f;
         turnSpeedSmoothRef = 0f;
         stairYawVelocity = 0f;
 
+        footstepTimer = 0f;
+
         if (smoothForwardSpeed < 0.1f)
-        {
             smoothForwardSpeed = 0f;
-        }
 
         targetStairAngle =
             stairUpAngle;
@@ -856,14 +1010,14 @@ public class CatController : MonoBehaviour
         stairVerticalVelocity = 0f;
 
         Debug.Log(
-            "Cat started stair climb. Y rotation locked to " +
-            stairLockYRotation
-        );
+            "Cat started stair climb. " +
+            "Y rotation locked to " +
+            stairLockYRotation);
     }
 
-    // =========================================================
+    // ============================================================
     // FINISH STAIR CLIMB
-    // =========================================================
+    // ============================================================
 
     private void FinishAutoClimb()
     {
@@ -873,9 +1027,7 @@ public class CatController : MonoBehaviour
         isAutoClimbing = false;
 
         stairNotDetectedTimer = 0f;
-
         targetStairAngle = 0f;
-
         stairVerticalVelocity = 0f;
 
         stairCooldownTimer =
@@ -883,8 +1035,6 @@ public class CatController : MonoBehaviour
 
         forwardSpeedSmoothRef = 0f;
 
-        // Reset turning so normal control
-        // starts cleanly again.
         smoothTurnSpeed = 0f;
         turnSpeedSmoothRef = 0f;
         stairYawVelocity = 0f;
@@ -892,14 +1042,24 @@ public class CatController : MonoBehaviour
         inputX = 0f;
         inputZ = 0f;
 
+        footstepTimer = 0f;
+
+        Vector3 velocity =
+            rb.velocity;
+
+        velocity.y = 0f;
+
+        rb.velocity =
+            velocity;
+
         Debug.Log(
-            "Cat finished stair climb. Normal movement restored."
-        );
+            "Cat finished stair climb. " +
+            "Normal movement restored.");
     }
 
-    // =========================================================
+    // ============================================================
     // CONTROL
-    // =========================================================
+    // ============================================================
 
     public void SetControl(bool value)
     {
@@ -910,30 +1070,26 @@ public class CatController : MonoBehaviour
             inputX = 0f;
             inputZ = 0f;
             jumpQueued = false;
+            footstepTimer = 0f;
 
             if (isAutoClimbing)
-            {
                 FinishAutoClimb();
-            }
 
             Debug.Log(
-                "Cat controls DISABLED."
-            );
+                "Cat controls DISABLED.");
         }
         else
         {
             Debug.Log(
-                "Cat controls ENABLED."
-            );
+                "Cat controls ENABLED.");
         }
     }
 
-    // =========================================================
-    // MANUAL STAIR CONTROL
-    // =========================================================
+    // ============================================================
+    // STAIR ANGLE
+    // ============================================================
 
-    public void SetStairAngle(
-        float angle)
+    public void SetStairAngle(float angle)
     {
         targetStairAngle = angle;
     }
@@ -943,9 +1099,9 @@ public class CatController : MonoBehaviour
         targetStairAngle = 0f;
     }
 
-    // =========================================================
-    // DEBUG
-    // =========================================================
+    // ============================================================
+    // GIZMOS
+    // ============================================================
 
     private void OnDrawGizmosSelected()
     {
@@ -956,8 +1112,7 @@ public class CatController : MonoBehaviour
 
             Gizmos.DrawWireSphere(
                 groundCheck.position,
-                groundCheckRadius
-            );
+                groundCheckRadius);
         }
 
         Vector3 rayOrigin;
@@ -983,7 +1138,6 @@ public class CatController : MonoBehaviour
         Gizmos.DrawRay(
             rayOrigin,
             transform.forward *
-            stairRayDistance
-        );
+            stairRayDistance);
     }
 }

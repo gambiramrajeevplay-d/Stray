@@ -8,6 +8,8 @@ TagManager:
   - StairDown
   - StairUp
   - Cat.001
+  - TimerText
+  - InGameSound
   layers:
   - Default
   - TransparentFX
