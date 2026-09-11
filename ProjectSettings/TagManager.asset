@@ -12,6 +12,8 @@ TagManager:
   - InGameSound
   - Collected Text
   - TypeWritter
+  - Health Text
+  - Health_Fill
   layers:
   - Default
   - TransparentFX

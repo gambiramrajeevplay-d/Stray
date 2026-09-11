@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -37,6 +38,23 @@ public class GameManager : MonoBehaviour
 
     [Header("Scarf Image Sequence")]
     public ScarfImageSequence scarfImageSequence;
+
+    // =========================================================
+    // SCARF IMAGE SEQUENCE AUDIO
+    // =========================================================
+
+    [Header("Scarf Image Sequence Audio")]
+    [Tooltip("Audio clip that will loop while the scarf image sequence is playing.")]
+    public AudioClip imageSequenceAudioClip;
+
+    [Tooltip("Volume of the image sequence audio.")]
+    [Range(0f, 1f)]
+    public float imageSequenceAudioVolume = 1f;
+
+    [Tooltip("Automatically create a separate AudioSource for the image sequence.")]
+    public bool createImageSequenceAudioSource = true;
+
+    private AudioSource imageSequenceAudioSource;
 
     // =========================================================
     // FADE
@@ -180,6 +198,12 @@ public class GameManager : MonoBehaviour
         }
 
         // =====================================================
+        // CREATE IMAGE SEQUENCE AUDIO SOURCE
+        // =====================================================
+
+        CreateImageSequenceAudioSource();
+
+        // =====================================================
         // FIND SCARF IMAGE SEQUENCE
         // =====================================================
 
@@ -297,6 +321,47 @@ public class GameManager : MonoBehaviour
     }
 
     // =========================================================
+    // CREATE IMAGE SEQUENCE AUDIO SOURCE
+    // =========================================================
+
+    private void CreateImageSequenceAudioSource()
+    {
+        if (!createImageSequenceAudioSource)
+        {
+            return;
+        }
+
+        if (imageSequenceAudioSource != null)
+        {
+            return;
+        }
+
+        GameObject audioObject =
+            new GameObject(
+                "ScarfImageSequenceAudio"
+            );
+
+        audioObject.transform.SetParent(
+            transform
+        );
+
+        imageSequenceAudioSource =
+            audioObject.AddComponent<AudioSource>();
+
+        imageSequenceAudioSource.playOnAwake = false;
+        imageSequenceAudioSource.loop = true;
+        imageSequenceAudioSource.volume =
+            imageSequenceAudioVolume;
+
+        // 2D audio.
+        imageSequenceAudioSource.spatialBlend = 0f;
+
+        Debug.Log(
+            "GameManager: Separate Scarf Image Sequence AudioSource created."
+        );
+    }
+
+    // =========================================================
     // START
     // =========================================================
 
@@ -347,6 +412,12 @@ public class GameManager : MonoBehaviour
         {
             catController.canControl = false;
         }
+
+        // =====================================================
+        // IMAGE SEQUENCE AUDIO OFF
+        // =====================================================
+
+        StopImageSequenceAudio();
 
         // =====================================================
         // INITIAL FADE
@@ -548,13 +619,14 @@ public class GameManager : MonoBehaviour
         }
 
         // =====================================================
-        // ASSIGN TIMER TEXT TO TIMER COMPONENT
+        // ASSIGN TIMER TEXT
         // =====================================================
 
         if (timer != null &&
             timerText != null)
         {
-            timer.timerText = timerText;
+            timer.timerText =
+                timerText;
         }
     }
 
@@ -620,12 +692,6 @@ public class GameManager : MonoBehaviour
     private IEnumerator ScarfCollectedRoutine()
     {
         // =====================================================
-        // STOP GAMEPLAY AUDIO
-        // =====================================================
-
-        StopGameplayAudio();
-
-        // =====================================================
         // DISABLE CAT CONTROL
         // =====================================================
 
@@ -650,6 +716,10 @@ public class GameManager : MonoBehaviour
                 "Starting scarf text typewriter."
             );
 
+            // =================================================
+            // TYPEWRITER PLAYS WHILE GAMEPLAY AUDIO CONTINUES
+            // =================================================
+
             yield return StartCoroutine(
                 TypewriterRoutine(
                     scarfText,
@@ -662,10 +732,27 @@ public class GameManager : MonoBehaviour
                 "Scarf text typewriter finished."
             );
 
+            // =================================================
+            // KEEP TEXT VISIBLE
+            // =================================================
+
             yield return new WaitForSecondsRealtime(
                 scarfTextDuration
             );
         }
+
+        // =====================================================
+        // NOW STOP GAMEPLAY AUDIO
+        // =====================================================
+
+        // IMPORTANT:
+        // This is intentionally AFTER the scarf typewriter
+        // and the scarf text display duration.
+        StopGameplayAudio();
+
+        Debug.Log(
+            "InGameSound stopped after scarf collect text finished."
+        );
 
         // =====================================================
         // FADE INTO IMAGE SEQUENCE
@@ -709,6 +796,12 @@ public class GameManager : MonoBehaviour
         }
 
         // =====================================================
+        // PLAY IMAGE SEQUENCE AUDIO
+        // =====================================================
+
+        PlayImageSequenceAudio();
+
+        // =====================================================
         // PLAY IMAGE SEQUENCE
         // =====================================================
 
@@ -726,6 +819,8 @@ public class GameManager : MonoBehaviour
                 "Scarf Image Sequence is NOT assigned."
             );
 
+            StopImageSequenceAudio();
+
             FinishScarfSequence();
         }
 
@@ -741,6 +836,69 @@ public class GameManager : MonoBehaviour
         }
 
         scarfTextCoroutine = null;
+    }
+
+    // =========================================================
+    // PLAY IMAGE SEQUENCE AUDIO
+    // =========================================================
+
+    private void PlayImageSequenceAudio()
+    {
+        if (imageSequenceAudioSource == null)
+        {
+            CreateImageSequenceAudioSource();
+        }
+
+        if (imageSequenceAudioSource == null)
+        {
+            Debug.LogWarning(
+                "GameManager: Image Sequence AudioSource could not be created."
+            );
+
+            return;
+        }
+
+        if (imageSequenceAudioClip == null)
+        {
+            Debug.LogWarning(
+                "GameManager: No Image Sequence Audio Clip assigned."
+            );
+
+            return;
+        }
+
+        imageSequenceAudioSource.clip =
+            imageSequenceAudioClip;
+
+        imageSequenceAudioSource.loop = true;
+
+        imageSequenceAudioSource.volume =
+            imageSequenceAudioVolume;
+
+        imageSequenceAudioSource.Play();
+
+        Debug.Log(
+            "Scarf Image Sequence Audio STARTED and LOOPING."
+        );
+    }
+
+    // =========================================================
+    // STOP IMAGE SEQUENCE AUDIO
+    // =========================================================
+
+    private void StopImageSequenceAudio()
+    {
+        if (imageSequenceAudioSource == null)
+            return;
+
+        if (imageSequenceAudioSource.isPlaying)
+        {
+            imageSequenceAudioSource.Stop();
+
+            Debug.Log(
+                "Scarf Image Sequence Audio STOPPED."
+            );
+        }
     }
 
     // =========================================================
@@ -770,7 +928,8 @@ public class GameManager : MonoBehaviour
              i < message.Length;
              i++)
         {
-            textComponent.text += message[i];
+            textComponent.text +=
+                message[i];
 
             yield return new WaitForSecondsRealtime(
                 characterSpeed
@@ -795,6 +954,16 @@ public class GameManager : MonoBehaviour
             "Scarf sequence finished."
         );
 
+        // =====================================================
+        // STOP IMAGE SEQUENCE AUDIO
+        // =====================================================
+
+        StopImageSequenceAudio();
+
+        // =====================================================
+        // FADE TO BLACK
+        // =====================================================
+
         if (fadeController != null)
         {
             yield return StartCoroutine(
@@ -808,12 +977,24 @@ public class GameManager : MonoBehaviour
 
         yield return null;
 
+        // =====================================================
+        // KEEP CAT CONTROL DISABLED
+        // =====================================================
+
         SetCatControl(false);
+
+        // =====================================================
+        // SHOW SCARF PANEL
+        // =====================================================
 
         if (scarfPanel != null)
         {
             scarfPanel.SetActive(true);
         }
+
+        // =====================================================
+        // FADE IN
+        // =====================================================
 
         if (fadeController != null)
         {
@@ -834,6 +1015,8 @@ public class GameManager : MonoBehaviour
 
     private void FinishScarfSequence()
     {
+        StopImageSequenceAudio();
+
         SetCatControl(false);
 
         if (scarfPanel != null)
@@ -856,7 +1039,8 @@ public class GameManager : MonoBehaviour
 
         if (catController != null)
         {
-            catController.canControl = enabled;
+            catController.canControl =
+                enabled;
 
             Debug.Log(
                 "Cat Control = " +
@@ -1013,7 +1197,21 @@ public class GameManager : MonoBehaviour
             scarfPanel.SetActive(false);
         }
 
+        // =====================================================
+        // MAKE SURE IMAGE SEQUENCE AUDIO IS STOPPED
+        // =====================================================
+
+        StopImageSequenceAudio();
+
+        // =====================================================
+        // RESUME GAMEPLAY AUDIO
+        // =====================================================
+
         ResumeGameplayAudio();
+
+        // =====================================================
+        // ENABLE CAT CONTROL
+        // =====================================================
 
         SetCatControl(true);
 
@@ -1030,6 +1228,8 @@ public class GameManager : MonoBehaviour
     public void RestartScene()
     {
         Time.timeScale = 1f;
+
+        StopImageSequenceAudio();
 
         SceneManager.LoadScene(
             "Level_Selection"
@@ -1231,7 +1431,9 @@ public class GameManager : MonoBehaviour
             " FRAMES"
         );
 
-        for (int i = 0; i < frames; i++)
+        for (int i = 0;
+             i < frames;
+             i++)
         {
             yield return null;
         }
@@ -1268,7 +1470,7 @@ public class GameManager : MonoBehaviour
             );
 
         // =====================================================
-        // WAIT FOR TYPEWRITER + 1 SECOND
+        // WAIT FOR TYPEWRITER + DELAY
         // =====================================================
 
         yield return cutsceneEndTextCoroutine;
@@ -1351,7 +1553,7 @@ public class GameManager : MonoBehaviour
         );
 
         // =====================================================
-        // WAIT 1 SECOND
+        // WAIT
         // =====================================================
 
         yield return new WaitForSecondsRealtime(

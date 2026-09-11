@@ -3639,7 +3639,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -6949,7 +6949,7 @@ GameObject:
   - component: {fileID: 370285303}
   - component: {fileID: 370285306}
   - component: {fileID: 370285305}
-  - component: {fileID: 370285304}
+  - component: {fileID: 370285307}
   m_Layer: 0
   m_Name: mesh0
   m_TagString: Untagged
@@ -6972,19 +6972,6 @@ Transform:
   m_Father: {fileID: 1551433671}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &370285304
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 370285302}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e85b96a30b8ca4c4e8be6e5d70492300, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  playerTag: Player
 --- !u!65 &370285305
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -7058,6 +7045,23 @@ SkinnedMeshRenderer:
     m_Center: {x: 0.0071744584, y: -0.052495405, z: -0.03731904}
     m_Extent: {x: 0.07150149, y: 0.06487344, z: 0.06957514}
   m_DirtyAABB: 0
+--- !u!114 &370285307
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 370285302}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e85b96a30b8ca4c4e8be6e5d70492300, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerTag: Player
+  collectionParticle: {fileID: 19800000, guid: f06e78284f831ae469c74624ab5d513b, type: 3}
+  particleSpawnPoint: {fileID: 1236161387}
+  collectionAudioClip: {fileID: 8300000, guid: 2f8d34dc2ae763a41bee8ca68690f51b, type: 3}
+  audioVolume: 1
 --- !u!1001 &375063972
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17986,6 +17990,8 @@ MonoBehaviour:
   closeSpeed: 8
   openAngle: -270
   playerTag: Player
+  doorOpenClip: {fileID: 8300000, guid: 8f70369109ccc8b4f8118bde1915d522, type: 3}
+  doorOpenVolume: 1
 --- !u!1001 &970730631
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -22741,6 +22747,103 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1284362209545138997, guid: 6c02b9ec1e61da5478d4e4eff88966a0, type: 3}
   m_PrefabInstance: {fileID: 1234937604}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1236161386
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1236161387}
+  - component: {fileID: 1236161390}
+  - component: {fileID: 1236161389}
+  - component: {fileID: 1236161388}
+  m_Layer: 0
+  m_Name: Spawn Particle
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1236161387
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1236161386}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.0043, y: 0.7659, z: 0.0118}
+  m_LocalScale: {x: 0.04, y: 0.04, z: 0.04}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 1551433671}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1236161388
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1236161386}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 0
+  serializedVersion: 2
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!23 &1236161389
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1236161386}
+  m_Enabled: 0
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &1236161390
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1236161386}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1 &1238743559
 GameObject:
   m_ObjectHideFlags: 0
@@ -29245,6 +29348,7 @@ Transform:
   m_Children:
   - {fileID: 182476219}
   - {fileID: 370285303}
+  - {fileID: 1236161387}
   m_Father: {fileID: 1603050523}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: -38.491, y: 0, z: 0}
@@ -34730,6 +34834,8 @@ MonoBehaviour:
   closeSpeed: 8
   openAngle: 90
   playerTag: Player
+  doorOpenClip: {fileID: 0}
+  doorOpenVolume: 1
 --- !u!1001 &1823527724
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -36760,6 +36866,9 @@ MonoBehaviour:
   scarfTextDuration: 3
   scarfPanel: {fileID: 402116003}
   scarfImageSequence: {fileID: 0}
+  imageSequenceAudioClip: {fileID: 8300000, guid: ccecf403b2dd47f408faf4768d55872e, type: 3}
+  imageSequenceAudioVolume: 1
+  createImageSequenceAudioSource: 1
   fadeController: {fileID: 0}
   catController: {fileID: 0}
   timer: {fileID: 607216844}
@@ -36773,7 +36882,11 @@ MonoBehaviour:
   cutsceneEndMessage: "This place feels familiar\u2026 but where is my human"
   typewriterSpeed: 0.05
   cutsceneEndTextDuration: 3
+  cutsceneEndDisableDelay: 1
   levelGameObject: {fileID: 1603050522}
+  collectedTextObjectName: Collected Text
+  typeWritterObjectName: TypeWritter
+  timerTextObjectName: TimerText
   inGameSoundObjectName: InGameSound
   levelInitializeFrames: 5
 --- !u!4 &1915455720
@@ -44149,11 +44262,11 @@ MonoBehaviour:
   animationReferenceSpeed: 4
   minimumAnimationSpeed: 0.5
   maximumAnimationSpeed: 1.5
-  footstepClip: {fileID: 0}
+  footstepClip: {fileID: 8300000, guid: 38122499b35a2024fb5c35fd121af7f0, type: 3}
   footstepInterval: 0.35
   minimumFootstepSpeed: 0.1
   footstepVolume: 1
-  meowClip: {fileID: 0}
+  meowClip: {fileID: 8300000, guid: 4c282c381b0b3ad469af6791c22c5445, type: 3}
   meowInterval: 5
   meowVolume: 1
 --- !u!95 &2239974114833206258
